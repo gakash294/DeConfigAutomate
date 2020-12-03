@@ -4,12 +4,7 @@ import ai.infrrd.idc.entity.FinalizedDeconfigResponse;
 import ai.infrrd.idc.entity.SuccessfulUpdation;
 import ai.infrrd.idc.entity.UpdateRequestBody;
 import ai.infrrd.idc.entity.UpdatedResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import org.apache.http.client.methods.*;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -19,13 +14,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +60,7 @@ public class InsertScript
                     reqHeaders = new HttpHeaders();
                     reqHeaders.setContentType( MediaType.APPLICATION_JSON );
                     requestEntity = new HttpEntity<String>( updateString, reqHeaders );
+                    Thread.sleep(3000);
                     String sb1 = template
                         .exchange( "https://internal-dev-idc.infrrdapis.com/de/de-config", HttpMethod.PUT, requestEntity,
                             String.class ).getBody();
@@ -84,6 +77,8 @@ public class InsertScript
             e.printStackTrace();
         } catch ( ParseException e ) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
     }
@@ -93,8 +88,8 @@ public class InsertScript
     {
         UpdateRequestBody updateRequestBody = new UpdateRequestBody();
         //usermodelID and customerId has to be hardcoded
-        updateRequestBody.setUserModelId( "0aa4314f-8bda-4c3c-9dcc-c77533e1b841" );
-        updateRequestBody.setCustomerId( "54b63893-fd6d-4f8b-ae9e-5161a6b08943" );
+        updateRequestBody.setUserModelId( "54b63893-fd6d-4f8b-ae9e-5161a6b08943" );
+        updateRequestBody.setCustomerId( "0aa4314f-8bda-4c3c-9dcc-c77533e1b841" );
         updateRequestBody.setExtractionProcessType( successfulUpdation.getData().getExtractionProcessType() );
         updateRequestBody.setExtractorFieldName( successfulUpdation.getData().getExtractorFieldName() );
         updateRequestBody.setFieldName( successfulUpdation.getData().getFieldName() );
