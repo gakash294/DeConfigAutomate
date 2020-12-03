@@ -15,154 +15,119 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
 
-public class InsertScript {
+
+public class InsertScript
+{
     static List<FinalizedDeconfigResponse> deconfigResponseList = new ArrayList<>();
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InsertScript.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger( InsertScript.class );
 
-    public static void main( String[] args ) throws IOException {
-        Properties properties = getPropValues();
-        String updateUrl = properties.getProperty("updateurl");
-        String patchUrl = properties.getProperty("apisurl");;
-        String finalizedUrl =  properties.getProperty("finalizedurl");
 
-        CloseableHttpClient client = HttpClients.createDefault();
-        HttpPatch httpPatch = new HttpPatch(patchUrl);
-        HttpPut httpPut = new HttpPut(updateUrl);
-
+    public static void main( String[] args ) throws IOException
+    {
         JSONParser parser = new JSONParser();
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            JSONArray array = (JSONArray) parser.parse(new FileReader("/home/users004/dummy.json"));
-            for (Object object:array){
+            JSONArray array = (JSONArray) parser
+                .parse( new InputStreamReader( InsertScript.class.getResourceAsStream( "/dummy.json" ) ) );
+            for ( Object object : array ) {
+                RestTemplate template = new RestTemplate( new HttpComponentsClientHttpRequestFactory() );
+                LoggingRequestInterceptor loggingInterceptor = new LoggingRequestInterceptor();
+                template.getInterceptors().add(loggingInterceptor);
+
                 String json = object.toString();
-                StringEntity entity = new StringEntity(json);
-                //PATCH call to update the extractor fieldnames and fieldname
-                httpPatch.setEntity(entity);
-                httpPatch.setHeader("Accept", "application/json");
-                httpPatch.setHeader("Content-type", "application/json");
-                CloseableHttpResponse response = client.execute(httpPatch);
-                InputStream encoding = response.getEntity().getContent();
-                InputStreamReader inputStreamReader = new InputStreamReader(encoding);
-                BufferedReader reader = new BufferedReader(inputStreamReader);
-                StringBuffer sb = new StringBuffer();
-                String str;
-                while((str = reader.readLine())!= null){
-                    sb.append(str);
-                }
-                System.out.println(sb.toString());
+                HttpHeaders reqHeaders = new HttpHeaders();
+                reqHeaders.setContentType( MediaType.APPLICATION_JSON );
+                HttpEntity<String> requestEntity = new HttpEntity<String>( json, reqHeaders );
+                String sb = template
+                    .exchange( "https://internal-dev-idc.infrrdapis.com/de/de-config-apis", HttpMethod.PATCH, requestEntity,
+                        String.class ).getBody();
+
+                System.out.println( sb.toString() );
                 Gson g = new Gson();
-                SuccessfulUpdation s = g.fromJson(String.valueOf(sb), SuccessfulUpdation.class);
+                SuccessfulUpdation s = g.fromJson( String.valueOf( sb ), SuccessfulUpdation.class );
 
                 //PUT call to update the DEconfigs
-                if ( sb.toString().contains("Successfully DEConfig updated")) {
-                    UpdateRequestBody updateBody = mapper(s);
-                    String updateString = objectMapper.writeValueAsString(updateBody);
-                    StringEntity entity1 = new StringEntity(updateString);
-                    httpPut.setEntity(entity1);
-                    httpPut.setHeader("Accept", "application/json");
-                    httpPut.setHeader("Content-type", "application/json");
-                    CloseableHttpResponse response1 = client.execute(httpPut);
-                    InputStream encoding1 = response1.getEntity().getContent();
-                    InputStreamReader inputStreamReader1 = new InputStreamReader(encoding1);
-                    BufferedReader reader1 = new BufferedReader(inputStreamReader1);
-                    StringBuffer sb1 = new StringBuffer();
-                    String str1;
-                    while((str1 = reader1.readLine())!= null){
-                        sb1.append(str1);
+                if ( sb.contains( "Successfully DEConfig updated" ) ) {
+                    UpdateRequestBody updateBody = mapper( s );
+                    String updateString = new Gson().toJson( updateBody );
+                    reqHeaders = new HttpHeaders();
+                    reqHeaders.setContentType( MediaType.APPLICATION_JSON );
+                    requestEntity = new HttpEntity<String>( updateString, reqHeaders );
+                    String sb1 = template
+                        .exchange( "https://internal-dev-idc.infrrdapis.com/de/de-config", HttpMethod.PUT, requestEntity,
+                            String.class ).getBody();
+                    //sending the id to finalized de config as param
+                    UpdatedResponse deconfigResponse = g.fromJson( String.valueOf( sb1 ), UpdatedResponse.class );
+                    if ( deconfigResponse.getMessage().contains( "Successfully DEConfig updated" ) ) {
+                        callFinalizedDeConfig( updateBody.getId() );
+                    } else {
+                        LOGGER.info( "deconfig was finalized for the id : " + deconfigResponse.getData().getId() );
                     }
-                    LOGGER.info("Updated Response is : "+sb1.toString());
-                   //sending the id to finalized de config as param
-                   UpdatedResponse deconfigResponse = g.fromJson(String.valueOf(sb), UpdatedResponse.class);
-                   if (deconfigResponse.getMessage().contains("Successfully DEConfig updated")) {
-                       callFinalizedDeConfig(finalizedUrl,updateBody.getId());
-                   }else{
-                       LOGGER.info("deconfig was finalized for the id : "+ deconfigResponse.getData().getId());
-                   }
                 }
             }
-        } catch (IOException e) {
+        } catch ( IOException e ) {
             e.printStackTrace();
-        } catch (ParseException e) {
+        } catch ( ParseException e ) {
             e.printStackTrace();
         }
 
     }
 
-    private static UpdateRequestBody mapper(SuccessfulUpdation successfulUpdation) {
+
+    private static UpdateRequestBody mapper( SuccessfulUpdation successfulUpdation )
+    {
         UpdateRequestBody updateRequestBody = new UpdateRequestBody();
         //usermodelID and customerId has to be hardcoded
-        updateRequestBody.setUserModelId("111");
-        updateRequestBody.setCustomerId("111");
-        updateRequestBody.setExtractionProcessType(successfulUpdation.getData().getExtractionProcessType());
-        updateRequestBody.setExtractorFieldName(successfulUpdation.getData().getExtractorFieldName());
-        updateRequestBody.setFieldName(successfulUpdation.getData().getFieldName());
-        updateRequestBody.setMicroserviceFieldConfig(successfulUpdation.getData().getMicroserviceFieldConfig());
-        updateRequestBody.setId(successfulUpdation.getData().getId());
-        System.out.println(updateRequestBody.getId());
-        return  updateRequestBody;
+        updateRequestBody.setUserModelId( "0aa4314f-8bda-4c3c-9dcc-c77533e1b841" );
+        updateRequestBody.setCustomerId( "54b63893-fd6d-4f8b-ae9e-5161a6b08943" );
+        updateRequestBody.setExtractionProcessType( successfulUpdation.getData().getExtractionProcessType() );
+        updateRequestBody.setExtractorFieldName( successfulUpdation.getData().getExtractorFieldName() );
+        updateRequestBody.setFieldName( successfulUpdation.getData().getFieldName() );
+        updateRequestBody.setMicroserviceFieldConfig( successfulUpdation.getData().getMicroserviceFieldConfig() );
+        updateRequestBody.setId( successfulUpdation.getData().getId() );
+        System.out.println( updateRequestBody.getId() );
+        return updateRequestBody;
     }
+
 
     //finalized deconfig
-    private  static  void callFinalizedDeConfig(String url,String id){
-        Gson gson= new Gson();
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        try {
+    private static void callFinalizedDeConfig( String id )
+    {
+        Gson gson = new Gson();
+        RestTemplate template = new RestTemplate( new HttpComponentsClientHttpRequestFactory() );
 
-            HttpUriRequest httppost = RequestBuilder.post()
-                    .setUri(new URI(url))
-                    .addParameter("id", id)
-                    .build();
+        //set interceptors/requestFactory
+        LoggingRequestInterceptor loggingInterceptor = new LoggingRequestInterceptor();
+        template.getInterceptors().add(loggingInterceptor);
+        HashMap map = new HashMap();
+        map.put( "id", id );
 
-            CloseableHttpResponse response = httpclient.execute(httppost);
-            InputStream encoding = response.getEntity().getContent();
-            InputStreamReader inputStreamReader = new InputStreamReader(encoding);
-            BufferedReader reader = new BufferedReader(inputStreamReader);
-            StringBuffer sb = new StringBuffer();
-            String str;
-            while((str = reader.readLine())!= null){
-                sb.append(str);
-            }
+        Object sb =  template
+            .postForEntity( "https://internal-dev-idc.infrrdapis.com/de/finalize-deconfig?id={id}", null, String.class, map ).getBody();
 
-            FinalizedDeconfigResponse deconfigResponse = gson.fromJson(String.valueOf(sb), FinalizedDeconfigResponse.class);
-            if (deconfigResponse.getMessage()!=null && deconfigResponse.getMessage().contains("Successfully  finalize deconfig"))
-            {
-                LOGGER.info("finalizedDeConfig reponse which were success are : " + sb);
-                deconfigResponseList.add(deconfigResponse);
-            }else
-            {
-                LOGGER.info("Deconfig has not been finalised");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+        FinalizedDeconfigResponse deconfigResponse = gson.fromJson( String.valueOf( sb ), FinalizedDeconfigResponse.class );
+        if ( deconfigResponse.getMessage() != null && deconfigResponse.getMessage()
+            .contains( "Successfully  finalize deconfig" ) ) {
+            LOGGER.info( "finalizedDeConfig reponse which were success are : " + sb );
+            deconfigResponseList.add( deconfigResponse );
+        } else {
+            LOGGER.info( "Deconfig has not been finalised" );
         }
-    }
 
-    public static Properties getPropValues() throws IOException {
-        Properties prop = new Properties();
-        try {
-            String propFileName = "application.properties";
-            InputStream inputStream;
-            inputStream = InsertScript.class.getClassLoader().getResourceAsStream(propFileName);
-            if (inputStream != null) {
-                prop.load(inputStream);
-            } else {
-                throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
-            }
-
-        } catch (Exception e) {
-            System.out.println("Exception: " + e);
-        }
-        return prop;
     }
 }

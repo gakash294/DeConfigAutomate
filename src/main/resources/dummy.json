@@ -1,0 +1,15 @@
+[{
+  "id": "VyU72nUBq1b06rURBGC4",
+  "fieldName": "shipToAddress",
+  "extractorType": "MICROSERVICE_API",
+  "extractionProcessType": "PARALLEL",
+  "extractorFieldName": "shipToAddress_Address",
+  "microserviceFieldConfig":"Dummy config"
+},
+  {
+    "id": "fSVq2nUBq1b06rURv2A0",
+    "fieldName": "addresses",
+    "extractorType": "MICROSERVICE_API",
+    "extractionProcessType": "PARALLEL",
+    "extractorFieldName": "addresses"
+  }]
