@@ -1,0 +1,20 @@
+[
+  {
+    "fieldName" : "DummyTwo",
+    "version":1,
+    "extractorFieldName":"dummy",
+    "customerId": "333",
+    "userModelId": "333",
+    "regexes" : [
+    ],
+    "vicinityWords" : [
+    ],
+    "negativeVicinityWords" : [
+    ],
+    "extractors" : [
+    ],
+    "extractionProcessType":"PARALLEL",
+    "extractorType":"MICROSERVICE_API",
+    "microserviceFieldConfig": "dummy"
+  }
+]
