@@ -1,15 +1,42 @@
 [{
-  "id": "VyU72nUBq1b06rURBGC4",
-  "fieldName": "shipToAddress",
+  "id": "fCC2EnUB-iIt3zxsJQuN",
+  "fieldName": "merchantName",
   "extractorType": "MICROSERVICE_API",
   "extractionProcessType": "PARALLEL",
-  "extractorFieldName": "shipToAddress_Address",
-  "microserviceFieldConfig":"Dummy config"
+  "extractorFieldName": "merchantname"
 },
   {
-    "id": "fSVq2nUBq1b06rURv2A0",
-    "fieldName": "addresses",
+    "id": "gCC3EnUB-iIt3zxsMwug",
+    "fieldName": "invoiceDate",
     "extractorType": "MICROSERVICE_API",
     "extractionProcessType": "PARALLEL",
-    "extractorFieldName": "addresses"
+    "extractorFieldName": "Date"
+  },
+  {
+    "id": "VCCFEnUB-iIt3zxsWwtt",
+    "fieldName": "purchaseOrderNo",
+    "extractorType": "MICROSERVICE_API",
+    "extractionProcessType": "PARALLEL",
+    "extractorFieldName": "Purchase"
+  },
+  {
+    "id": "eyC0EnUB-iIt3zxsmQtL",
+    "fieldName": "totalBillAmount",
+    "extractorType": "MICROSERVICE_API",
+    "extractionProcessType": "PARALLEL",
+    "extractorFieldName": "billAmount"
+  },
+  {
+    "id": "SCB7EnUB-iIt3zxsaAtK",
+    "fieldName": "vatRegistrationNumber",
+    "extractorType": "MICROSERVICE_API",
+    "extractionProcessType": "PARALLEL",
+    "extractorFieldName": "vat"
+  },
+  {
+    "id": "YCCKEnUB-iIt3zxsVAtS",
+    "fieldName": "invoiceNo",
+    "extractorType": "MICROSERVICE_API",
+    "extractionProcessType": "PARALLEL",
+    "extractorFieldName": "number"
   }]

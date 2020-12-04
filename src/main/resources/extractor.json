@@ -1,0 +1,32 @@
+[
+  {
+    "extractorFieldName" : "dummy1",
+    "extractorFieldType" : "Single Value",
+    "serviceApiUrl" : "http://localhost:8094/fe/extract/addressesonly",
+    "toBeGrouped" : false
+  },
+  {
+    "extractorFieldName" : "dummy2",
+    "extractorFieldType" : "Single Value",
+    "serviceApiUrl" : "http://localhost:8094/fe/extract/addressesonly",
+    "toBeGrouped" : false
+  },
+  {
+    "extractorFieldName" : "dummy3",
+    "extractorFieldType" : "Single Value",
+    "serviceApiUrl" : "http://localhost:8094/fe/extract/addressesonly",
+    "toBeGrouped" : false
+  },
+  {
+    "extractorFieldName" : "dummy4",
+    "extractorFieldType" : "Single Value",
+    "serviceApiUrl" : "http://localhost:8094/fe/extract/addressesonly",
+    "toBeGrouped" : false
+  },
+  {
+    "extractorFieldName" : "dummy5",
+    "extractorFieldType" : "Single Value",
+    "serviceApiUrl" : "http://localhost:8094/fe/extract/addressesonly",
+    "toBeGrouped" : false
+  }
+]

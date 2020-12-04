@@ -88,8 +88,8 @@ public class InsertScript
     {
         UpdateRequestBody updateRequestBody = new UpdateRequestBody();
         //usermodelID and customerId has to be hardcoded
-        updateRequestBody.setUserModelId( "54b63893-fd6d-4f8b-ae9e-5161a6b08943" );
-        updateRequestBody.setCustomerId( "0aa4314f-8bda-4c3c-9dcc-c77533e1b841" );
+        updateRequestBody.setUserModelId( "7dccd65c-bf0b-4093-b536-93bed0584a75" );
+        updateRequestBody.setCustomerId( "258655f1-ba74-4941-afbb-c7af8faacfa4" );
         updateRequestBody.setExtractionProcessType( successfulUpdation.getData().getExtractionProcessType() );
         updateRequestBody.setExtractorFieldName( successfulUpdation.getData().getExtractorFieldName() );
         updateRequestBody.setFieldName( successfulUpdation.getData().getFieldName() );
